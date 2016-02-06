@@ -1,0 +1,8 @@
+# -*- restclient -*-
+#
+# Gets  all Github APIs, formats JSON, shows response status and headers underneath.
+# Also sends a User-Agent header, because the Github API requires this.
+#
+GET https://api.github.com/search/repositories?q=tetris+language:assembly&sort=stars&order=desc
+User-Agent: steveshogren
+Authorization: token a91b938ac6f45fe361aa97f71888868e10799976
