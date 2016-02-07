@@ -20,7 +20,11 @@ library
                      , base >= 4.7 && < 5
                      , bytestring >= 0.10.6.0
                      , http-types >= 0.8.6
+                     , lens >= 4.12.3
+                     , lens-aeson >= 1.0.0.5
                      , network >= 2.6.2.1
+                     , text >= 1.2.1.3
+                     , wreq
   default-language:    Haskell2010
 
 executable github-stats-exe
@@ -33,7 +37,11 @@ executable github-stats-exe
                      , github-stats
                      , http-conduit
                      , http-types >= 0.8.6
+                     , lens >= 4.12.3
+                     , lens-aeson >= 1.0.0.5
                      , network >= 2.6.2.1
+                     , text >= 1.2.1.3
+                     , wreq
   default-language:    Haskell2010
 
 test-suite github-stats-test
@@ -45,7 +53,11 @@ test-suite github-stats-test
                      , bytestring >= 0.10.6.0
                      , github-stats
                      , http-types >= 0.8.6
+                     , lens >= 4.12.3
+                     , lens-aeson >= 1.0.0.5
                      , network >= 2.6.2.1
+                     , text >= 1.2.1.3
+                     , wreq
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 

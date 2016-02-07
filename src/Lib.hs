@@ -1,37 +1,29 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
 module Lib
     ( someFunc
     ) where
 
+import Network.Wreq
 import Control.Monad
-import Network
-import Network.HTTP.Conduit
-import Network.HTTP.Types.Header
-import qualified Data.ByteString.Char8 as BD
-import GHC.Generics
+import Control.Lens
 import Data.Aeson
+import Data.Aeson.Lens
+import qualified Data.Text as T
+import qualified Data.ByteString.Char8 as BS
 
-data ResultCount = ResultCount {
-  total_count :: Int }
-  deriving (Generic, Show)
+loadToken :: IO String
+loadToken = readFile "token"
 
-instance ToJSON ResultCount
-instance FromJSON ResultCount
+opts l token = defaults & param "q" .~ [T.pack $ "tetris language:" ++ l]
+                        & param "order" .~ ["desc"]
+                        & param "sort" .~ ["stars"]
+                        & header "User-Agent" .~ ["steveshogren"]
+                        & header "Authorization" .~ [BS.pack $ "token " ++ token]
 
-query :: String -> IO (Maybe Int)
 query lang = do
-    initReq <- parseUrl "https://api.github.com/search/repositories?q=tetris+language:assembly"
-    let r = initReq
-                   { method = "GET"
-                    , requestHeaders = [(hUserAgent, "steveshogren")
-                                      , (hAuthorization, "token")]}
-    let request = setQueryString [("q", Just (BD.pack $ " language:" ++ lang))
-                                 , ("order", Just "desc")
-                                 ,("sort", Just "stars")] r
-    manager <- newManager tlsManagerSettings
-    res <- httpLbs request manager
-    return . liftM total_count . decode . responseBody $ res
+    token <- loadToken
+    r <- getWith (opts lang token) "https://api.github.com/search/repositories"
+    return $ r ^? responseBody . key "total_count" . _Number
 
 someFunc :: IO ()
 someFunc = (query "ruby") >>= print
