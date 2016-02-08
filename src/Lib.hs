@@ -19,23 +19,21 @@ import qualified Data.ByteString.Char8 as BS
 
 -- https://api.github.com/search/issues?q=label:bug
 
-authHeader token = header "Authorization" .~ [BS.pack $ "token " ++ token]
+addAuthHeader token opts = opts & header "Authorization" .~ [BS.pack $ "token " ++ token]
+                                & header "User-Agent" .~ ["steveshogren"]
+
 dateRange =  " created:\"2011-01-01..2016-01-30\""
 bugLabel = " label:bug"
 
-bugSearchOpts repo token = defaults
+bugSearchOpts :: String -> String -> Options
+bugSearchOpts repo token = addAuthHeader token $ defaults
                     & param "q" .~ [T.pack $ "repo:" ++ repo ++ dateRange ++ bugLabel]
-                    & authHeader token
-                    & header "User-Agent" .~ ["steveshogren"]
-
 
 repoSearchOpts :: String -> String -> Int -> Options
-repoSearchOpts lang token page = defaults
+repoSearchOpts lang token page = addAuthHeader token $ defaults
                     & param "q" .~ [T.pack $ "language:" ++ lang
                                       ++ " forks:\">15\"" ++ dateRange]
                     & param "per_page" .~ ["200"] & param "page" .~ [T.pack . show $ page]
-                    & authHeader token
-                    & header "User-Agent" .~ ["steveshogren"]
 
 bugSearch repo = do
     token <- readFile "token"
@@ -45,28 +43,30 @@ repoSearch lang page = do
     token <- readFile "token"
     getWith (repoSearchOpts lang token page) "https://api.github.com/search/repositories"
 
-collectTotalCount lang = do
-    r <- repoSearch lang 1
-    return $ r ^? responseBody . key "total_count" . _Number
+extractTotalCount r = r ^? responseBody . key "total_count" . _Number
 
-collectNames :: String -> Int -> IO [String]
-collectNames lang page = do
-    r <- repoSearch lang page
-    return . map T.unpack $ r ^.. responseBody . key "items" . values . key "full_name" . _String
+collectTotalCount lang =
+    extractTotalCount <$> repoSearch lang 1
+
+extractFullNames r =
+   let names = r ^.. responseBody . key "items" . values . key "full_name" . _String
+   in map T.unpack names
+
+collectPageOfNames :: String -> Int -> IO [String]
+collectPageOfNames lang page =
+    extractFullNames <$> repoSearch lang page
 
 collectAllNames :: String -> IO [String]
 collectAllNames lang =
-    concat <$> (sequence $ map (collectNames lang) [1..10])
+    concat <$> (sequence $ map (collectPageOfNames lang) [1..10])
 
-collectBugCountsForRepo repo = do
-    bugs <- bugSearch repo
-    return $ bugs ^? responseBody . key "total_count" . _Number
+collectBugCountsForRepo repo =
+    extractTotalCount <$> bugSearch repo
 
 -- looks like search now limits to 30/hr, or 1 every 2min
 -- i want to search 1000 repos per lang... or, 33 hours a lang...
-collectBugCountsForLang lang = do
-     repos <- collectNames lang 1
-     sequence $ map collectBugCountsForRepo repos
+collectBugCountsForLang lang =
+     sequence . (map collectBugCountsForRepo) <$> collectPageOfNames lang 1
 
 someFunc :: IO ()
 someFunc = (repoSearch "ruby" 1) >>= print
