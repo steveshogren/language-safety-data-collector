@@ -7,6 +7,7 @@ import Network.Wreq
 import Control.Lens
 import Data.Aeson
 import Data.Aeson.Lens
+import Records
 import qualified Data.Text as T
 import qualified Data.ByteString.Char8 as BS
 

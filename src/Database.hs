@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 module Database (
                 load
                 , addMetric
@@ -38,18 +39,7 @@ loadMetric db metricName = do
 
 addMetric :: String -> String -> Int -> IO MetricHistory
 addMetric file metricName count = do
-  t <- today
   db <- load file
   let innerMetric = loadMetric db metricName
-      updatedMap = (M.insert metricName (M.insert t count innerMetric) db)
+      updatedMap =
     in length updatedMap `seq` (save updatedMap file >> load file)
-
-makeJson :: Metric -> String
-makeJson = L.intercalate "," . map (\(date, cnt) -> "['" ++ date ++ "', " ++ (show cnt) ++ "]") . M.toAscList
-
-generateJson file metricName = do
-  db <- load file
-  return $ makeJson $ loadMetric db metricName
-
-
-
