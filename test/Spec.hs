@@ -17,24 +17,20 @@ testDb = "testing"
 
 blankRecord :: Assertion
 blankRecord =
-   (D.blankRecord @?= (SeveralResults { languages = []})  )
+   (D.blankRecord @?= (SeveralResults { _languages = []})  )
 
 clearFileTest :: Assertion
-clearFileTest =
-  D.clearFile testDb
-  `seq`
-  let actual = D.load testDb
-  in (actual) >>= (@?= D.blankRecord)
+clearFileTest = do
+  actual <- D.clearFile testDb `seq` (D.load testDb)
+  (actual @?= D.blankRecord)
 
--- save :: Assertion
--- save = G.saveCount >>= (@?= 2)
-
--- findAll :: Assertion
--- findAll = G.findAllCount >>= (@?= 2)
-
--- find :: Assertion
--- find = G.findCount >>= (@?= 2)
+updateFileTest :: Assertion
+updateFileTest = do
+  actual <- D.clearFile testDb `seq` (D.updateRecord testDb)
+  ((_languages actual)  @?= [D.aRecord])
 
 tests = TestList [ "blank record" ~: blankRecord
-                   , "date range" ~: dateRange]
+                   , "date range" ~: dateRange
+                   , "update record" ~: updateFileTest
+                   , "clearing and reading from a file" ~: clearFileTest]
 

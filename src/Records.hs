@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
-module Records (Results
+module Records (Results(..)
                 , SeveralResults(..)
                 , Lang
                 , LangStats
@@ -9,18 +9,18 @@ import GHC.Generics
 import Data.Aeson
 
 data SeveralResults = SeveralResults {
-  languages :: [Results]
+  _languages :: [Results]
   }
-  deriving (Generic, Show, Eq)
+  deriving (Generic, Show, Eq, Read)
 
 instance ToJSON SeveralResults
 instance FromJSON SeveralResults
 
 data Results = Results {
-  total_count :: Int,
-  language :: String
+  _total_count :: Int,
+  _language :: String
   }
-  deriving (Generic, Show, Eq)
+  deriving (Generic, Show, Eq, Read)
 
 instance ToJSON Results
 instance FromJSON Results

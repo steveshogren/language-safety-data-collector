@@ -1,9 +1,12 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveGeneric #-}
 module Database (
               blankRecord
+                , load
+                , clearFile
+                , updateRecord
+                , aRecord
               --  load
-              --  , addData
-              --  , clearFile
               --  , generateJson
               --  , Metric
               --  , MetricHistory
@@ -17,15 +20,10 @@ import qualified Data.Map as M
 import qualified Data.List as L
 import Control.Lens
 
-blankRecord = SeveralResults { languages = [] }
+makeLenses ''Results
+makeLenses ''SeveralResults
 
--- today :: IO String
--- today = do
---   time <- liftM2 utcToLocalTime getCurrentTimeZone getCurrentTime
---   return $ showGregorian $ localDay time
-
--- type Metric = M.Map String Int
--- type MetricHistory = M.Map String Metric
+blankRecord = SeveralResults { _languages = [] }
 
 load :: (Read a) => FilePath -> IO a
 load f = do
@@ -37,6 +35,13 @@ save x f = writeFile f (show x)
 
 clearFile :: String -> IO ()
 clearFile f = save blankRecord f
+
+aRecord = Results { _total_count = 5, _language = "Haskell"}
+
+updateRecord f = do
+  db <- load f
+  let r = aRecord
+  return $ db & languages .~ [r]
 
 -- queryData :: MetricHistory -> String -> Metric
 -- queryData db metricName = do
