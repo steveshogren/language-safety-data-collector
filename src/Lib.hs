@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Lib
     ( someFunc
+     , dateRange
     ) where
 
 import Network.Wreq

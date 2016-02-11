@@ -16,7 +16,8 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Lib
-  build-depends:       aeson >= 0.8.0.2
+  build-depends:       HUnit >= 1.2.5.2
+                     , aeson >= 0.8.0.2
                      , base >= 4.7 && < 5
                      , bytestring >= 0.10.6.0
                      , containers >= 0.5.6.2
@@ -33,7 +34,8 @@ executable github-stats-exe
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       aeson >= 0.8.0.2
+  build-depends:       HUnit >= 1.2.5.2
+                     , aeson >= 0.8.0.2
                      , base
                      , bytestring >= 0.10.6.0
                      , containers >= 0.5.6.2
@@ -52,7 +54,8 @@ test-suite github-stats-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-  build-depends:       aeson >= 0.8.0.2
+  build-depends:       HUnit >= 1.2.5.2
+                     , aeson >= 0.8.0.2
                      , base
                      , bytestring >= 0.10.6.0
                      , containers >= 0.5.6.2
