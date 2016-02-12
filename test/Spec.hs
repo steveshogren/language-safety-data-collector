@@ -1,9 +1,14 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 import Test.HUnit
 import qualified Lib as L
 import qualified Database as D
+import Control.Lens
 import Records
 import Data.Functor ((<$>))
+
+makeLenses ''Results
+makeLenses ''SeveralResults
 
 main :: IO ()
 main = do
@@ -17,17 +22,20 @@ testDb = "testing"
 
 blankRecord :: Assertion
 blankRecord =
-   (D.blankRecord @?= (SeveralResults { _languages = []})  )
+   (D.blankRecord^.languages @?= [])
 
 clearFileTest :: Assertion
 clearFileTest = do
   actual <- D.clearFile testDb `seq` (D.load testDb)
   (actual @?= D.blankRecord)
 
+aRecord = Results { _total_count = 5, _language = "Haskell"}
+
 updateFileTest :: Assertion
 updateFileTest = do
-  actual <- D.clearFile testDb `seq` (D.updateRecord testDb)
-  ((_languages actual)  @?= [D.aRecord])
+  let x = (D.clearFile testDb) `seq` (D.updateRecord testDb aRecord)
+  actual <- x `seq` (D.load testDb)
+  ((actual^.languages)  @?= [aRecord])
 
 tests = TestList [ "blank record" ~: blankRecord
                    , "date range" ~: dateRange

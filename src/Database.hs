@@ -5,11 +5,6 @@ module Database (
                 , load
                 , clearFile
                 , updateRecord
-                , aRecord
-              --  load
-              --  , generateJson
-              --  , Metric
-              --  , MetricHistory
                ) where
 
 import Data.Time ( showGregorian,  localDay, getCurrentTime, getCurrentTimeZone, utcToLocalTime)
@@ -36,12 +31,10 @@ save x f = writeFile f (show x)
 clearFile :: String -> IO ()
 clearFile f = save blankRecord f
 
-aRecord = Results { _total_count = 5, _language = "Haskell"}
-
-updateRecord f = do
+updateRecord f aRecord = do
   db <- load f
-  let r = aRecord
-  return $ db & languages .~ [r]
+  let updated = db & languages <>~ [aRecord]
+  save updated f
 
 -- queryData :: MetricHistory -> String -> Metric
 -- queryData db metricName = do
