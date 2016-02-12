@@ -1,7 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveGeneric #-}
-module Database (
-              blankRecord
+module Database (blankRecord
                 , load
                 , clearFile
                 , updateRecord
@@ -13,6 +12,9 @@ import Control.Monad(liftM2, liftM)
 import Records
 import qualified Data.Map as M
 import qualified Data.List as L
+import qualified Data.ByteString as Str
+import qualified Data.ByteString.Lazy as Lz
+import qualified Data.ByteString.Char8 as BS
 import Control.Lens
 
 makeLenses ''Results
@@ -21,29 +23,14 @@ makeLenses ''SeveralResults
 blankRecord = SeveralResults { _languages = [] }
 
 load :: (Read a) => FilePath -> IO a
-load f = do
-   s <- readFile f
-   return (read s)
+load f = read <$> BS.unpack <$> Str.readFile f
 
 save :: (Show a) => a -> FilePath -> IO ()
-save x f = writeFile f (show x)
+save x f = Str.writeFile f (BS.pack . show $ x)
 
 clearFile :: String -> IO ()
 clearFile f = save blankRecord f
 
 updateRecord f aRecord = do
   db <- load f
-  let updated = db & languages <>~ [aRecord]
-  save updated f
-
--- queryData :: MetricHistory -> String -> Metric
--- queryData db metricName = do
---   case M.lookup metricName db of
---     Nothing -> M.empty
---     Just metric -> metric
-
--- addData :: String -> String -> Int -> IO MetricHistory
--- addData file metricName count = do
---   db <- load file
---   let innerMetric = queryData db metricName
---     in length updatedMap `seq` (save updatedMap file >> load file)
+  save (db & languages <>~ [aRecord]) f

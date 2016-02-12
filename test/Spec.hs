@@ -26,19 +26,19 @@ blankRecord =
 
 clearFileTest :: Assertion
 clearFileTest = do
-  actual <- D.clearFile testDb `seq` (D.load testDb)
+  actual <- D.clearFile testDb >> D.load testDb
   (actual @?= D.blankRecord)
 
 aRecord = Results { _total_count = 5, _language = "Haskell"}
 
 updateFileTest :: Assertion
 updateFileTest = do
-  let x = (D.clearFile testDb) `seq` (D.updateRecord testDb aRecord)
-  actual <- x `seq` (D.load testDb)
-  ((actual^.languages)  @?= [aRecord])
+  actual <- D.clearFile testDb >> D.updateRecord testDb aRecord >> D.load testDb
+  ((actual^.languages) @?= [aRecord])
 
-tests = TestList [ "blank record" ~: blankRecord
+tests = TestList ["blank record" ~: blankRecord
                    , "date range" ~: dateRange
                    , "update record" ~: updateFileTest
                    , "clearing and reading from a file" ~: clearFileTest]
+
 
