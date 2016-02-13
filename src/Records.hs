@@ -1,20 +1,19 @@
 {-# LANGUAGE DeriveGeneric #-}
 module Records (Results(..)
                 , SeveralResults(..)
-                , Lang
-                , LangStats
+                , Language
+                , RepoStats(..)
+                , RepoStat(..)
                 ) where
 
 import GHC.Generics
 import Data.Aeson
+import qualified Data.Map as M
 
 data SeveralResults = SeveralResults {
   _languages :: [Results]
   }
   deriving (Generic, Show, Eq, Read)
-
-instance ToJSON SeveralResults
-instance FromJSON SeveralResults
 
 data Results = Results {
   _total_count :: Int,
@@ -22,22 +21,13 @@ data Results = Results {
   }
   deriving (Generic, Show, Eq, Read)
 
-instance ToJSON Results
-instance FromJSON Results
+type Language = String
 
-data LangStats = LangStats {
-  langs :: [Lang]
+type RepoStats = M.Map String [RepoStat]
+
+data RepoStat = RepoStat {
+  _full_name :: String,
+  _bug_count :: Maybe Int,
+  _commit_count :: Maybe Int
   }
-  deriving (Generic, Show)
-
-instance ToJSON LangStats
-instance FromJSON LangStats
-
-data Lang = Lang {
-  full_name :: String,
-  bug_count :: Int
-  }
-  deriving (Generic, Show)
-
-instance ToJSON Lang
-instance FromJSON Lang
+  deriving (Generic, Show, Eq, Read)

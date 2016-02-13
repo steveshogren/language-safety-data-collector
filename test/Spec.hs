@@ -37,8 +37,8 @@ updateFileTest = do
   ((actual^.languages) @?= [aRecord])
 
 tests = TestList ["blank record" ~: blankRecord
-                   , "date range" ~: dateRange
-                   , "update record" ~: updateFileTest
-                   , "clearing and reading from a file" ~: clearFileTest]
+                , "date range" ~: dateRange
+                , "update record" ~: updateFileTest
+                , "clearing and reading from a file" ~: clearFileTest]
 
 
