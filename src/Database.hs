@@ -1,3 +1,5 @@
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -44,7 +46,7 @@ makeNewRepo repoName =
 
 saveRepoStatName f lang repoName = do
   db <- load f :: IO(RepoStats)
-  let updated = (at lang . non M.empty . at repoName . non (makeNewRepo repoName) . bug_count ?~ 0) $ db
+  let updated = (at lang . non M.empty . at repoName . non (makeNewRepo repoName) . bug_count .~ Nothing) $ db
   save updated f
 
 updateRepoBugCount f lang repoName bugCount = do
