@@ -1,5 +1,3 @@
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -7,6 +5,12 @@ module Database (blankRecord
                 , load
                 , clearFile
                 , updateRecord
+                , clearRepoStats
+                , updateRepoBugCount
+                , updateRepoCommitCount
+                , lensIt
+                , bug_count
+                , commit_count
                ) where
 
 import Records
@@ -44,19 +48,18 @@ clearRepoStats f = save blankRepoStats f
 makeNewRepo repoName =
    RepoStat{_full_name = repoName, _bug_count = Nothing, _commit_count = Nothing}
 
-saveRepoStatName f lang repoName = do
+updateRepoFieldCount field f lang repoName count  = do
   db <- load f :: IO(RepoStats)
-  let updated = (at lang . non M.empty . at repoName . non (makeNewRepo repoName) . bug_count .~ Nothing) $ db
+  let updated = (at lang . _Just . at repoName . non (makeNewRepo repoName) . field ?~ count) $ db
   save updated f
-
-updateRepoBugCount f lang repoName bugCount = do
-  db <- load f :: IO(RepoStats)
-  let updated = (at lang . non M.empty . at repoName . non (makeNewRepo repoName) . bug_count ?~ 0) $ db
-  save updated f
+updateRepoBugCount = updateRepoFieldCount bug_count
+updateRepoCommitCount = updateRepoFieldCount commit_count
 
 lensIt f lang = do
   db <- load f :: IO(RepoStats)
-  return $ db ^.at lang
+  return $ db ^.at lang . non M.empty
+
+-- xx=  updateRepoFieldCount  "repostats" "haskell" "TESTNME" bug_count 2
 
 -- type Tester = M.Map Int (M.Map Int Int)
 
