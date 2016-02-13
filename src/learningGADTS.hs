@@ -1,19 +1,16 @@
+{-# LANGUAGE GADTs #-}
 module LearningGADTS () where
 
-data Expr = I Int
-        | B Bool           -- boolean constants
-        | Add Expr Expr
-        | Mul Expr Expr
-        | Eq  Expr Expr    -- equality test
+data Expr a where
+    I :: Int -> Expr Int
+    B :: Bool -> Expr Bool
+    Add :: Expr Int -> Expr Int -> Expr Int
+    Mul :: Expr Int -> Expr Int -> Expr Int
+    Eq :: Expr Int -> Expr Int -> Expr Bool
 
-unpack :: Maybe (Either Int Bool) -> Maybe Int
-unpack (Just (Left a)) = Just a
-unpack _ = Nothing
-
-eval :: Expr -> Maybe (Either Int Bool)
-eval (I n) = Just $ Left n
-eval (B b) = Just $ Right b
-eval (Add e1 e2) = do
-  v1 <- unpack . eval $ e1
-  v2 <- unpack . eval $ e2
-  Just . Left $ v1 + v2
+eval :: Expr a -> a
+eval (I n) = n
+eval (B b) = b
+eval (Add e1 e2) = eval e1 + eval e2
+eval (Mul e1 e2) = eval e1 * eval e2
+eval (Eq  e1 e2) = eval e1 == eval e2
