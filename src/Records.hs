@@ -22,8 +22,9 @@ data Results = Results {
   deriving (Generic, Show, Eq, Read)
 
 type Language = String
+type RepoName = String
 
-type RepoStats = M.Map String [RepoStat]
+type RepoStats = M.Map Language (M.Map RepoName RepoStat)
 
 data RepoStat = RepoStat {
   _full_name :: String,

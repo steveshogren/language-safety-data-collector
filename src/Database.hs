@@ -34,7 +34,7 @@ updateRecord f aRecord = do
   db <- load f
   save (db & languages <>~ [aRecord]) f
 
-blankRepoStats = (M.empty::RepoStats)
+blankRepoStats = (M.fromList [("haskell", M.empty)])::RepoStats
 
 clearRepoStats :: String -> IO ()
 clearRepoStats f = save blankRepoStats f
@@ -42,12 +42,22 @@ clearRepoStats f = save blankRepoStats f
 makeNewRepo repoName =
    RepoStat{_full_name = repoName, _bug_count = Nothing, _commit_count = Nothing}
 
-saveRepoStatName f repoName = do
+saveRepoStatName f lang repoName = do
   db <- load f :: IO(RepoStats)
-  let updated = (ix "haskell" <>~ [makeNewRepo repoName]) $ db
+  let updated = (at lang . non M.empty . at repoName . non (makeNewRepo repoName) . bug_count ?~ 0) $ db
   save updated f
-  return ()
 
-lensIt = do
-  db <- load "repostats" :: IO(RepoStats)
-  return $ db ^.at "haskell"
+updateRepoBugCount f lang repoName bugCount = do
+  db <- load f :: IO(RepoStats)
+  let updated = (at lang . non M.empty . at repoName . non (makeNewRepo repoName) . bug_count ?~ 0) $ db
+  save updated f
+
+lensIt f lang = do
+  db <- load f :: IO(RepoStats)
+  return $ db ^.at lang
+
+-- type Tester = M.Map Int (M.Map Int Int)
+
+-- doer =
+--   let x = M.fromList [(1, M.fromList [(1, 4)])] :: Tester
+--   in at 1 . non M.empty . at 1 ?~ 3 $ x
