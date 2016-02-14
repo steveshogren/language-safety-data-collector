@@ -3,8 +3,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 module Database
        (blankRecord, load, clearFile, updateRecord, clearRepoStats,
-        updateRepoBugCount, updateRepoCommitCount, lookupLanguage, bug_count,
-        commit_count, full_name)
+        updateRepoBugCount, updateRepoCommitCount, updateRepoName,
+        lookupLanguage, bug_count, commit_count, full_name)
        where
 
 import Records
@@ -48,29 +48,26 @@ makeNewRepo repoName =
     , _commit_count = Nothing
     }
 
-updateRepoFieldCount
-    :: ((a -> Identity (Maybe b)) -> RepoStat -> Identity RepoStat)
-    -> FilePath
-    -> String
-    -> String
-    -> b
-    -> IO ()
 updateRepoFieldCount field f lang repoName count = do
     db <- load f :: IO (RepoStats)
     let updated =
             at lang . non (M.empty) . at repoName . non (makeNewRepo repoName) .
-            field ?~
+            field .~
             count $
             db
     save updated f
+
+updateRepoBugCount :: FilePath -> String -> String -> Maybe Int -> IO ()
 updateRepoBugCount = updateRepoFieldCount bug_count
+
+updateRepoCommitCount :: FilePath -> String -> String -> Maybe Int -> IO ()
 updateRepoCommitCount = updateRepoFieldCount commit_count
+
+updateRepoName f lang repoName = do
+    db <- load f :: IO (RepoStats)
+    let x = db & at lang . non (M.empty) . at repoName ?~ (makeNewRepo repoName)
+    save x f
 
 lookupLanguage f lang = do
     db <- load f :: IO (RepoStats)
     return $ db ^. at lang . non M.empty
-
--- changeBugs lang repoName map count =
---     at lang . non (M.empty) . at repoName . non (makeNewRepo repoName) . bug_count ?~ count $ map
--- getmap lang repoName map =
---     map ^. at lang . non (M.empty) . at repoName . non (makeNewRepo repoName)

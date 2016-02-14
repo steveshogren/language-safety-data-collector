@@ -10,6 +10,7 @@ import Data.Aeson
 import Data.Aeson.Lens
 import Records
 import qualified Data.Text as T
+import qualified Database as D
 import qualified Data.ByteString.Char8 as BS
 
 -- lens stuff
@@ -47,20 +48,20 @@ repoSearch lang page = do
 
 extractTotalCount r = r ^? responseBody . key "total_count" . _Number
 
-collectTotalCount lang =
-    extractTotalCount <$> repoSearch lang 1
+collectTotalCount lang = extractTotalCount <$> repoSearch lang 1
 
 extractFullNames r =
-   let names = r ^.. responseBody . key "items" . values . key "full_name" . _String
-   in map T.unpack names
+    let names =
+            r ^.. responseBody . key "items" . values . key "full_name" .
+            _String
+    in map T.unpack names
 
 collectPageOfNames :: String -> Int -> IO [String]
-collectPageOfNames lang page =
-    extractFullNames <$> repoSearch lang page
+collectPageOfNames lang page = extractFullNames <$> repoSearch lang page
 
 collectAllNames :: String -> IO [String]
 collectAllNames lang =
-    concat <$> (sequence $ map (collectPageOfNames lang) [1..10])
+    concat <$> (sequence $ map (collectPageOfNames lang) [1 .. 10])
 
 collectBugCountsForRepo repo =
     extractTotalCount <$> bugSearch repo
@@ -72,3 +73,7 @@ collectBugCountsForLang lang =
 
 someFunc :: IO ()
 someFunc = (repoSearch "ruby" 1) >>= print
+
+persistAllNames f lang = do
+  names <- collectAllNames lang
+  sequence $ map (D.updateRepoName f lang) names
