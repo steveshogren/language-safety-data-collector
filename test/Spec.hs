@@ -4,6 +4,7 @@ import Test.HUnit
 import qualified Lib as L
 import qualified Database as D
 import Control.Lens
+import qualified Data.Map as M
 import Records
 import Data.Functor ((<$>))
 
@@ -47,16 +48,13 @@ stat name bug commit =
     , _commit_count = Just commit
     }
 
-d a b c =
-  a + b + b
-
 saveFieldCount :: Assertion
 saveFieldCount = do
     actual <-
         D.clearRepoStats testDb >>
         D.updateRepoBugCount testDb "haskell" "somerepo" 2 >>
         D.updateRepoCommitCount testDb "haskell" "somerepo" 4 >>
-        D.lensIt testDb "haskell"
+        D.lookupLanguage testDb "haskell"
     ((actual ^. at "somerepo") @?= Just (stat "somerepo" 2 4))
 
 tests =
@@ -66,3 +64,18 @@ tests =
         , "update record" ~: updateFileTest
         , "saving repo stats" ~: saveFieldCount
         , "clearing and reading from a file" ~: clearFileTest]
+
+makeStat name bug commit =
+    RepoStat
+    { _full_name = name
+    , _bug_count = Just bug
+    , _commit_count = Just commit
+    }
+
+getRepoStat :: String -> String -> (RepoStat -> Identity RepoStat) -> RepoStats -> Identity RepoStats
+getRepoStat k1 k2 = at k1 . non (M.empty) . at k2 . non (makeStat k2 0 0)
+
+fakeDb = M.empty :: RepoStats
+setBug = fakeDb & (getRepoStat "a" "b") . D.bug_count ?~ 4
+setName = fakeDb & (getRepoStat "a" "b") . D.full_name .~ "horse"
+--getBug = fakeDb ^. ((getRepoStat "a" "b"))
