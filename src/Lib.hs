@@ -81,3 +81,9 @@ ipersistAllNames getNames f lang = do
   names <- getNames lang
   mapM_ (D.updateRepoName f lang) names
 persistAllNames = ipersistAllNames collectAllNames
+
+persistAllReposForAllLangs :: FilePath -> IO ()
+persistAllReposForAllLangs f = mapM_ (\l -> persistAllNames (f++"_"++l) l) allLangs
+
+--allLangs = ["haskell", "rust", "clojure", "js", "java", "csharp", "python", "ruby", "php", "perl", "scala", "go"]
+allLangs = ["haskell", "rust"]
