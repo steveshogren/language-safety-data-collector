@@ -10,6 +10,7 @@ import Test.HUnit
 import qualified Lib as L
 import qualified Database as D
 import Control.Lens
+import Control.Monad (join)
 import qualified Data.Map as M
 import Records
 import Data.Functor ((<$>))
@@ -54,6 +55,7 @@ stat name bug commit =
     , _commit_count = commit
     }
 
+-- when the repo name doesn't already exist
 saveFieldCount :: Assertion
 saveFieldCount = do
     actual <-
@@ -61,7 +63,8 @@ saveFieldCount = do
         D.updateRepoBugCount testDb "haskell" "somerepo" 2 >>
         D.updateRepoCommitCount testDb "haskell" "somerepo" 4 >>
         D.lookupLanguage testDb "haskell"
-    ((actual ^. at "somerepo") @?= Just (stat "somerepo" (Just 2) (Just 4)))
+    let repo = join $ (view (at "somerepo")) <$> actual
+    (repo @?= Just (stat "somerepo" (Just 2) (Just 4)))
 
 initRepoTest :: Assertion
 initRepoTest = do
@@ -69,7 +72,8 @@ initRepoTest = do
         D.clearRepoStats testDb >>
         D.updateRepoName testDb "haskell" "somerepo" >>
         D.lookupLanguage testDb "haskell"
-    ((actual ^. at "somerepo") @?= Just (stat "somerepo" Nothing Nothing))
+    let repo = join $ (view (at "somerepo")) <$> actual
+    (repo @?= Just (stat "somerepo" Nothing Nothing))
 
 tests =
     TestList

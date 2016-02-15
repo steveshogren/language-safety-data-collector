@@ -71,4 +71,4 @@ updateRepoName f lang repoName = do
 
 lookupLanguage f lang = do
     db <- load f :: IO (RepoStats)
-    return $ db ^. at lang . non M.empty
+    return $ db ^. at lang
