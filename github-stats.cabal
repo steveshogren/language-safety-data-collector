@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
+  exposed-modules:     Lib, Database, Records
   build-depends:       HUnit >= 1.2.5.2
                      , aeson >= 0.8.0.2
                      , base >= 4.7 && < 5

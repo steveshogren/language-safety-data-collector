@@ -1,5 +1,11 @@
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+
+module SomeTests
+       (main)
+       where
+
 import Test.HUnit
 import qualified Lib as L
 import qualified Database as D
@@ -44,8 +50,8 @@ updateFileTest = do
 stat name bug commit =
     RepoStat
     { _full_name = name
-    , _bug_count = Just bug
-    , _commit_count = Just commit
+    , _bug_count = bug
+    , _commit_count = commit
     }
 
 saveFieldCount :: Assertion
@@ -55,7 +61,15 @@ saveFieldCount = do
         D.updateRepoBugCount testDb "haskell" "somerepo" 2 >>
         D.updateRepoCommitCount testDb "haskell" "somerepo" 4 >>
         D.lookupLanguage testDb "haskell"
-    ((actual ^. at "somerepo") @?= Just (stat "somerepo" 2 4))
+    ((actual ^. at "somerepo") @?= Just (stat "somerepo" (Just 2) (Just 4)))
+
+initRepoTest :: Assertion
+initRepoTest = do
+    actual <-
+        D.clearRepoStats testDb >>
+        D.updateRepoName testDb "haskell" "somerepo" >>
+        D.lookupLanguage testDb "haskell"
+    ((actual ^. at "somerepo") @?= Just (stat "somerepo" Nothing Nothing))
 
 tests =
     TestList
@@ -63,6 +77,7 @@ tests =
         , "date range" ~: dateRange
         , "update record" ~: updateFileTest
         , "saving repo stats" ~: saveFieldCount
+        , "init repo with name" ~: initRepoTest
         , "clearing and reading from a file" ~: clearFileTest]
 
 makeStat name bug commit =
@@ -72,10 +87,10 @@ makeStat name bug commit =
     , _commit_count = Just commit
     }
 
-getRepoStat :: String -> String -> (RepoStat -> Identity RepoStat) -> RepoStats -> Identity RepoStats
+getRepoStat :: String -> String -> Lens' RepoStats RepoStat
 getRepoStat k1 k2 = at k1 . non (M.empty) . at k2 . non (makeStat k2 0 0)
 
 fakeDb = M.empty :: RepoStats
 setBug = fakeDb & (getRepoStat "a" "b") . D.bug_count ?~ 4
 setName = fakeDb & (getRepoStat "a" "b") . D.full_name .~ "horse"
---getBug = fakeDb ^. ((getRepoStat "a" "b"))
+getBug = fakeDb ^. ((getRepoStat "a" "b"))

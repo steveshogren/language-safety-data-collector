@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -48,19 +49,19 @@ makeNewRepo repoName =
     , _commit_count = Nothing
     }
 
+getRepoStat :: String -> String -> Lens' RepoStats RepoStat
+getRepoStat lang repoName =
+    at lang . non (M.empty) . at repoName . non (makeNewRepo repoName)
+
 updateRepoFieldCount field f lang repoName count = do
     db <- load f :: IO (RepoStats)
-    let updated =
-            at lang . non (M.empty) . at repoName . non (makeNewRepo repoName) .
-            field .~
-            count $
-            db
+    let updated = db & (getRepoStat lang repoName) . field ?~ count
     save updated f
 
-updateRepoBugCount :: FilePath -> String -> String -> Maybe Int -> IO ()
+updateRepoBugCount :: FilePath -> String -> String -> Int -> IO ()
 updateRepoBugCount = updateRepoFieldCount bug_count
 
-updateRepoCommitCount :: FilePath -> String -> String -> Maybe Int -> IO ()
+updateRepoCommitCount :: FilePath -> String -> String -> Int -> IO ()
 updateRepoCommitCount = updateRepoFieldCount commit_count
 
 updateRepoName f lang repoName = do
