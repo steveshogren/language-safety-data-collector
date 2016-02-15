@@ -72,3 +72,7 @@ updateRepoName f lang repoName = do
 lookupLanguage f lang = do
     db <- load f :: IO (RepoStats)
     return $ db ^. at lang
+
+countRepos f lang = do
+  l <- lookupLanguage f lang
+  return $ M.size <$> l
