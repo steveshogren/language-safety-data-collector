@@ -79,11 +79,12 @@ someFunc = (repoSearch "ruby" 1) >>= print
 ipersistAllNames :: (String -> IO [String]) -> FilePath -> String -> IO ()
 ipersistAllNames getNames f lang = do
   names <- getNames lang
+  D.clearRepoStats f
   mapM_ (D.updateRepoName f lang) names
 persistAllNames = ipersistAllNames collectAllNames
 
 persistAllReposForAllLangs :: FilePath -> IO ()
 persistAllReposForAllLangs f = mapM_ (\l -> persistAllNames (f++"_"++l) l) allLangs
 
---allLangs = ["haskell", "rust", "clojure", "js", "java", "csharp", "python", "ruby", "php", "perl", "scala", "go"]
-allLangs = ["haskell", "rust"]
+allLangs = ["haskell", "rust", "clojure", "js", "java", "csharp", "python", "ruby", "php", "perl", "scala", "go"]
+--allLangs = ["haskell", "rust"]
