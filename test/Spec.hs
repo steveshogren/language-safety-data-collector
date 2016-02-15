@@ -80,17 +80,17 @@ tests =
         , "init repo with name" ~: initRepoTest
         , "clearing and reading from a file" ~: clearFileTest]
 
-makeStat name bug commit =
-    RepoStat
-    { _full_name = name
-    , _bug_count = Just bug
-    , _commit_count = Just commit
-    }
+-- makeStat name bug commit =
+--     RepoStat
+--     { _full_name = name
+--     , _bug_count = Just bug
+--     , _commit_count = Just commit
+--     }
 
-getRepoStat :: String -> String -> Lens' RepoStats RepoStat
-getRepoStat k1 k2 = at k1 . non (M.empty) . at k2 . non (makeStat k2 0 0)
+-- getRepoStat :: String -> String -> Lens' RepoStats RepoStat
+-- getRepoStat k1 k2 = at k1 . non (M.empty) . at k2 . non (makeStat k2 0 0)
 
-fakeDb = M.empty :: RepoStats
-setBug = fakeDb & (getRepoStat "a" "b") . D.bug_count ?~ 4
-setName = fakeDb & (getRepoStat "a" "b") . D.full_name .~ "horse"
-getBug = fakeDb ^. ((getRepoStat "a" "b"))
+-- fakeDb = M.empty :: RepoStats
+-- setBug = fakeDb & (getRepoStat "a" "b") . D.bug_count ?~ 4
+-- setName = fakeDb & (getRepoStat "a" "b") . D.full_name .~ "horse"
+-- getBug = fakeDb ^. ((getRepoStat "a" "b"))
