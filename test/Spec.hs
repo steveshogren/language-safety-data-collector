@@ -75,11 +75,29 @@ initRepoTest = do
     let repo = join $ (view (at "somerepo")) <$> actual
     (repo @?= Just (stat "somerepo" Nothing Nothing))
 
+
+mockApi :: String -> String -> String -> String -> IO [String]
+mockApi a b c name = return [a, b, c]
+
+peristAllNamesTest :: Assertion
+peristAllNamesTest = do
+    haskell <-
+        D.clearRepoStats testDb >>
+        L.ipersistAllNames (mockApi "a" "b" "c") testDb "haskell" >>
+        L.ipersistAllNames (mockApi "e" "f" "g") testDb "rust" >>
+        D.lookupLanguage testDb "haskell"
+    rust <- D.lookupLanguage testDb "rust"
+    ((join $ (view (at "a")) <$> haskell) @?= Just (stat "a" Nothing Nothing))
+    ((join $ (view (at "e")) <$> haskell) @?= Nothing)
+    ((join $ (view (at "e")) <$> rust) @?= Just (stat "e" Nothing Nothing))
+    ((join $ (view (at "a")) <$> rust) @?= Nothing)
+
 tests =
     TestList
         [ "blank record" ~: blankRecord
         , "date range" ~: dateRange
         , "update record" ~: updateFileTest
+        , "saving repo names with mocked api call" ~: peristAllNamesTest
         , "saving repo stats" ~: saveFieldCount
         , "init repo with name" ~: initRepoTest
         , "clearing and reading from a file" ~: clearFileTest]

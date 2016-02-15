@@ -2,10 +2,12 @@
 module Lib
     ( someFunc
      , dateRange
+       , ipersistAllNames
     ) where
 
 import Network.Wreq
 import Control.Lens
+import Control.Monad (join, mapM_)
 import Data.Aeson
 import Data.Aeson.Lens
 import Records
@@ -74,6 +76,8 @@ collectBugCountsForLang lang =
 someFunc :: IO ()
 someFunc = (repoSearch "ruby" 1) >>= print
 
-persistAllNames f lang = do
-  names <- collectAllNames lang
-  sequence $ map (D.updateRepoName f lang) names
+ipersistAllNames :: (String -> IO [String]) -> FilePath -> String -> IO ()
+ipersistAllNames getNames f lang = do
+  names <- getNames lang
+  mapM_ (D.updateRepoName f lang) names
+persistAllNames = ipersistAllNames collectAllNames
