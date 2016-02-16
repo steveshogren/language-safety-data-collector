@@ -80,7 +80,7 @@ ipersistAllNames :: (String -> IO [String]) -> FilePath -> String -> IO ()
 ipersistAllNames getNames f lang = do
   names <- getNames lang
   D.clearRepoStats f
-  mapM_ (D.updateRepoName f lang) names
+  D.updateRepoNames f lang names
 persistAllNames = ipersistAllNames collectAllNames
 
 persistAllReposForAllLangs :: FilePath -> IO ()

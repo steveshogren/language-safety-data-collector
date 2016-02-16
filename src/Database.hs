@@ -5,7 +5,8 @@
 module Database
        (blankRecord, load, clearFile, updateRecord, clearRepoStats,
         updateRepoBugCount, updateRepoCommitCount, updateRepoName,
-        lookupLanguage, bug_count, commit_count, full_name)
+        updateRepoNames, lookupLanguage, bug_count, commit_count,
+        full_name)
        where
 
 import Records
@@ -53,8 +54,10 @@ getRepoStat :: String -> String -> Lens' RepoStats RepoStat
 getRepoStat lang repoName =
     at lang . non (M.empty) . at repoName . non (makeNewRepo repoName)
 
+getRepoStatsFromDb f = load f :: IO(RepoStats)
+
 updateRepoFieldCount field f lang repoName count = do
-    db <- load f :: IO (RepoStats)
+    db <- getRepoStatsFromDb f
     let updated = db & (getRepoStat lang repoName) . field ?~ count
     save updated f
 
@@ -64,13 +67,21 @@ updateRepoBugCount = updateRepoFieldCount bug_count
 updateRepoCommitCount :: FilePath -> String -> String -> Int -> IO ()
 updateRepoCommitCount = updateRepoFieldCount commit_count
 
+addRepoToMap :: RepoStats -> String -> String -> RepoStats
+addRepoToMap db lang repoName = db & at lang . non (M.empty) . at repoName ?~ (makeNewRepo repoName)
+
 updateRepoName f lang repoName = do
-    db <- load f :: IO (RepoStats)
-    let x = db & at lang . non (M.empty) . at repoName ?~ (makeNewRepo repoName)
+    db <- getRepoStatsFromDb f
+    let x = addRepoToMap db lang repoName
+    save x f
+
+updateRepoNames f lang repoNames = do
+    db <- getRepoStatsFromDb f
+    let x = foldl (\db name -> addRepoToMap db lang name) db repoNames
     save x f
 
 lookupLanguage f lang = do
-    db <- load f :: IO (RepoStats)
+    db <- getRepoStatsFromDb f
     return $ db ^. at lang
 
 countRepos f lang = do

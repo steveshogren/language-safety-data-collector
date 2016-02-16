@@ -75,6 +75,15 @@ initRepoTest = do
     let repo = join $ (view (at "somerepo")) <$> actual
     (repo @?= Just (stat "somerepo" Nothing Nothing))
 
+initReposTest :: Assertion
+initReposTest = do
+    actual <-
+        D.clearRepoStats testDb >>
+        D.updateRepoNames testDb "haskell" ["otherrepo", "somerepo"] >>
+        D.lookupLanguage testDb "haskell"
+    ((M.size <$> actual) @?= Just 2)
+    let repo = join $ (view (at "somerepo")) <$> actual
+    (repo @?= Just (stat "somerepo" Nothing Nothing))
 
 mockApi :: String -> String -> String -> String -> IO [String]
 mockApi a b c name = return [a, b, c]
@@ -100,6 +109,7 @@ tests =
         , "saving repo names with mocked api call" ~: peristAllNamesTest
         , "saving repo stats" ~: saveFieldCount
         , "init repo with name" ~: initRepoTest
+        , "init several repos with names" ~: initReposTest
         , "clearing and reading from a file" ~: clearFileTest]
 
 -- makeStat name bug commit =
