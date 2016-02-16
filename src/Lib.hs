@@ -59,7 +59,9 @@ extractFullNames r =
     in map T.unpack names
 
 collectPageOfNames :: String -> Int -> IO [String]
-collectPageOfNames lang page = extractFullNames <$> repoSearch lang page
+collectPageOfNames lang page =
+  putStrLn ("Page: " ++ (show page) ++ " for " ++ lang) >>
+  extractFullNames <$> repoSearch lang page
 
 collectAllNames :: String -> IO [String]
 collectAllNames lang =
@@ -87,4 +89,3 @@ persistAllReposForAllLangs :: FilePath -> IO ()
 persistAllReposForAllLangs f = mapM_ (\l -> persistAllNames (f++"_"++l) l) allLangs
 
 allLangs = ["haskell", "rust", "clojure", "js", "java", "csharp", "python", "ruby", "php", "perl", "scala", "go"]
---allLangs = ["haskell", "rust"]
