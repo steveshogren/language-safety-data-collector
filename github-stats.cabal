@@ -24,6 +24,7 @@ library
                      , http-types >= 0.8.6
                      , lens >= 4.12.3
                      , lens-aeson >= 1.0.0.5
+                     , mtl >= 2.2.1
                      , network >= 2.6.2.1
                      , text >= 1.2.1.3
                      , time >= 1.5.0.1
@@ -44,6 +45,7 @@ executable github-stats-exe
                      , http-types >= 0.8.6
                      , lens >= 4.12.3
                      , lens-aeson >= 1.0.0.5
+                     , mtl >= 2.2.1
                      , network >= 2.6.2.1
                      , text >= 1.2.1.3
                      , time >= 1.5.0.1
@@ -63,6 +65,7 @@ test-suite github-stats-test
                      , http-types >= 0.8.6
                      , lens >= 4.12.3
                      , lens-aeson >= 1.0.0.5
+                     , mtl >= 2.2.1
                      , network >= 2.6.2.1
                      , text >= 1.2.1.3
                      , time >= 1.5.0.1
