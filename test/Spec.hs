@@ -14,6 +14,7 @@ import Control.Monad (join)
 import qualified Data.Map as M
 import Records
 import Data.Functor ((<$>))
+import Control.Monad.Reader (runReaderT,ReaderT)
 
 makeLenses ''Results
 makeLenses ''SeveralResults
@@ -42,10 +43,13 @@ aRecord =
     , _language = "Haskell"
     }
 
+doStuff :: ReaderT FilePath IO ()
+doStuff = do
+  D.clearFileT >> D.updateRecordT aRecord >> D.loadT
+
 updateFileTest :: Assertion
 updateFileTest = do
-    actual <-
-        D.clearFile testDb >> D.updateRecord testDb aRecord >> D.load testDb
+    actual <- runReaderT (D.clearFileT >> D.updateRecordT aRecord >> D.loadT) testDb
     ((actual ^. languages) @?= [aRecord])
 
 stat name bug commit =
