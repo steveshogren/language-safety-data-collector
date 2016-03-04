@@ -21,6 +21,7 @@ library
                      , base >= 4.7 && < 5
                      , bytestring >= 0.10.6.0
                      , containers >= 0.5.6.2
+                     , directory >= 1.2.2.0
                      , http-types >= 0.8.6
                      , lens >= 4.12.3
                      , lens-aeson >= 1.0.0.5
@@ -40,6 +41,7 @@ executable github-stats-exe
                      , base
                      , bytestring >= 0.10.6.0
                      , containers >= 0.5.6.2
+                     , directory >= 1.2.2.0
                      , github-stats
                      , http-conduit
                      , http-types >= 0.8.6
@@ -61,6 +63,7 @@ test-suite github-stats-test
                      , base
                      , bytestring >= 0.10.6.0
                      , containers >= 0.5.6.2
+                     , directory >= 1.2.2.0
                      , github-stats
                      , http-types >= 0.8.6
                      , lens >= 4.12.3
