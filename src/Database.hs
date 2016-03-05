@@ -4,8 +4,12 @@
 {-# LANGUAGE DeriveGeneric #-}
 module Database
        (blankRecord, load,loadT, clearFile, clearFileT, updateRecord, updateRecordT, clearRepoStats,
+        clearRepoStatsT,
         updateRepoBugCount, updateRepoCommitCount, updateRepoName,
+        updateRepoBugCountT, updateRepoCommitCountT, updateRepoNameT,
         updateRepoNames, lookupLanguage, bug_count, commit_count,
+        updateRepoNamesT, 
+        lookupLanguageT,
         full_name)
        where
 
@@ -37,7 +41,6 @@ saveT x = do
   fileName <- ask
   liftIO $ Str.writeFile fileName (BS.pack . show $ x)
 
-
 clearFileT :: ReaderT FilePath IO ()
 clearFileT = saveT blankRecord
 
@@ -46,8 +49,44 @@ updateRecordT aRecord = do
     db <- loadT
     saveT (db & languages <>~ [aRecord])
 
-clearRepoStats :: String -> IO ()
-clearRepoStats f = save blankRepoStats f
+clearRepoStatsT :: ReaderT FilePath IO ()
+clearRepoStatsT = saveT blankRepoStats
+
+getRepoStatsFromDbT :: ReaderT FilePath IO RepoStats
+getRepoStatsFromDbT = loadT
+
+updateRepoFieldCountT :: ((a -> Identity (Maybe b)) -> RepoStat -> Identity RepoStat)
+                      -> String -> String -> b -> ReaderT FilePath IO ()
+updateRepoFieldCountT field lang repoName count = do
+    db <- getRepoStatsFromDbT
+    let updated = db & (getRepoStat lang repoName) . field ?~ count
+    saveT updated
+
+updateRepoBugCountT :: String -> String -> Int -> ReaderT FilePath IO ()
+updateRepoBugCountT = updateRepoFieldCountT bug_count
+
+updateRepoCommitCountT :: String -> String -> Int -> ReaderT FilePath IO ()
+updateRepoCommitCountT = updateRepoFieldCountT commit_count
+
+updateRepoNameT :: String -> String -> ReaderT FilePath IO ()
+updateRepoNameT lang repoName = do
+    db <- getRepoStatsFromDbT
+    let x = addRepoToMap db lang repoName
+    saveT x
+
+updateRepoNamesT :: String -> [String] -> ReaderT FilePath IO ()
+updateRepoNamesT lang repoNames = do
+    db <- getRepoStatsFromDbT
+    let x = foldl (\db name -> addRepoToMap db lang name) db repoNames
+    saveT x
+
+lookupLanguageT lang = do
+    db <- getRepoStatsFromDbT
+    return $ db ^. at lang
+
+countReposT lang = do
+  l <- lookupLanguageT lang
+  return $ M.size <$> l
 
 -- lame old passing FilePath way
 load :: (Read a) => FilePath -> IO a
@@ -66,8 +105,8 @@ updateRecord f aRecord = do
 
 blankRepoStats = (M.fromList [("haskell", M.empty)]) :: RepoStats
 
-clearRepoStatsT :: ReaderT FilePath IO ()
-clearRepoStatsT = saveT blankRepoStats
+clearRepoStats :: String -> IO ()
+clearRepoStats f = save blankRepoStats f
 
 makeNewRepo repoName =
     RepoStat
@@ -80,6 +119,7 @@ getRepoStat :: String -> String -> Lens' RepoStats RepoStat
 getRepoStat lang repoName =
     at lang . non (M.empty) . at repoName . non (makeNewRepo repoName)
 
+getRepoStatsFromDb :: FilePath -> IO RepoStats
 getRepoStatsFromDb f = load f :: IO(RepoStats)
 
 updateRepoFieldCount :: ((a -> Identity (Maybe b)) -> RepoStat -> Identity RepoStat)

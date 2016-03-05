@@ -62,29 +62,28 @@ stat name bug commit =
 -- when the repo name doesn't already exist
 saveFieldCount :: Assertion
 saveFieldCount = do
-    actual <-
-        D.clearRepoStats testDb >>
-        D.updateRepoBugCount testDb "haskell" "somerepo" 2 >>
-        D.updateRepoCommitCount testDb "haskell" "somerepo" 4 >>
-        D.lookupLanguage testDb "haskell"
+    actual <- runReaderT (D.clearRepoStatsT
+                          >> D.updateRepoBugCountT "haskell" "somerepo" 2
+                          >> D.updateRepoCommitCountT "haskell" "somerepo" 4
+                          >> D.lookupLanguageT "haskell") testDb
     let repo = join $ (view (at "somerepo")) <$> actual
     (repo @?= Just (stat "somerepo" (Just 2) (Just 4)))
 
 initRepoTest :: Assertion
 initRepoTest = do
     actual <-
-        D.clearRepoStats testDb >>
-        D.updateRepoName testDb "haskell" "somerepo" >>
-        D.lookupLanguage testDb "haskell"
+        runReaderT (D.clearRepoStatsT >>
+                    D.updateRepoNameT "haskell" "somerepo" >>
+                    D.lookupLanguageT "haskell") testDb
     let repo = join $ (view (at "somerepo")) <$> actual
     (repo @?= Just (stat "somerepo" Nothing Nothing))
 
 initReposTest :: Assertion
 initReposTest = do
     actual <-
-        D.clearRepoStats testDb >>
-        D.updateRepoNames testDb "haskell" ["otherrepo", "somerepo"] >>
-        D.lookupLanguage testDb "haskell"
+       runReaderT (D.clearRepoStatsT  >>
+                   D.updateRepoNamesT  "haskell" ["otherrepo", "somerepo"] >>
+                   D.lookupLanguageT "haskell") testDb
     ((M.size <$> actual) @?= Just 2)
     let repo = join $ (view (at "somerepo")) <$> actual
     (repo @?= Just (stat "somerepo" Nothing Nothing))
