@@ -34,8 +34,8 @@ blankRecord = (D.blankRecord ^. languages @?= [])
 
 clearFileTest :: Assertion
 clearFileTest = do
-    actual <- D.clearFile testDb >> D.load testDb
-    (actual @?= D.blankRecord)
+  actual <- runReaderT (D.clearFileT >> D.loadT) testDb
+  (actual @?= D.blankRecord)
 
 aRecord =
     Results

@@ -27,9 +27,6 @@ blankRecord =
     { _languages = []
     }
 
-load :: (Read a) => FilePath -> IO a
-load f = read <$> BS.unpack <$> Str.readFile f
-
 loadT :: (Read a) => ReaderT FilePath IO a
 loadT = do
   fileName <- ask
@@ -40,21 +37,27 @@ saveT x = do
   fileName <- ask
   liftIO $ Str.writeFile fileName (BS.pack . show $ x)
 
-save :: (Show a) => a -> FilePath -> IO ()
-save x f = Str.writeFile f (BS.pack . show $ x)
-
-clearFile :: String -> IO ()
-clearFile f = save blankRecord f
 
 clearFileT :: ReaderT FilePath IO ()
-clearFileT = do
-  f <- ask
-  liftIO $ save blankRecord f
+clearFileT = saveT blankRecord
 
 updateRecordT :: Results -> ReaderT FilePath IO ()
 updateRecordT aRecord = do
     db <- loadT
     saveT (db & languages <>~ [aRecord])
+
+clearRepoStats :: String -> IO ()
+clearRepoStats f = save blankRepoStats f
+
+-- lame old passing FilePath way
+load :: (Read a) => FilePath -> IO a
+load f = read <$> BS.unpack <$> Str.readFile f
+
+save :: (Show a) => a -> FilePath -> IO ()
+save x f = Str.writeFile f (BS.pack . show $ x)
+
+clearFile :: String -> IO ()
+clearFile f = save blankRecord f
 
 updateRecord :: FilePath -> Results -> IO ()
 updateRecord f aRecord = do
@@ -63,8 +66,8 @@ updateRecord f aRecord = do
 
 blankRepoStats = (M.fromList [("haskell", M.empty)]) :: RepoStats
 
-clearRepoStats :: String -> IO ()
-clearRepoStats f = save blankRepoStats f
+clearRepoStatsT :: ReaderT FilePath IO ()
+clearRepoStatsT = saveT blankRepoStats
 
 makeNewRepo repoName =
     RepoStat
