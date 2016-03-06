@@ -14,6 +14,8 @@ import Records
 import qualified Data.Text as T
 import qualified Database as D
 import qualified Data.ByteString.Char8 as BS
+import Control.Monad.Trans (liftIO, lift)
+import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
 
 -- lens stuff
 -- ^? - traverse for a single Maybe thing
@@ -81,8 +83,7 @@ someFunc = (repoSearch "ruby" 1) >>= print
 ipersistAllNames :: (String -> IO [String]) -> FilePath -> String -> IO ()
 ipersistAllNames getNames f lang = do
   names <- getNames lang
-  D.clearRepoStats f
-  D.updateRepoNames f lang names
+  runReaderT (D.clearRepoStatsT >> D.updateRepoNamesT lang names) f
 persistAllNames = ipersistAllNames collectAllNames
 
 persistAllReposForAllLangs :: FilePath -> IO ()
