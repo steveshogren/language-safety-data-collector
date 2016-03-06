@@ -81,7 +81,7 @@ initRepoTest = do
 initReposTest :: Assertion
 initReposTest = do
     actual <-
-       runReaderT (D.clearRepoStatsT  >>
+        runReaderT(D.clearRepoStatsT  >>
                    D.updateRepoNamesT  "haskell" ["otherrepo", "somerepo"] >>
                    D.lookupLanguageT "haskell") testDb
     ((M.size <$> actual) @?= Just 2)
@@ -94,11 +94,11 @@ mockApi a b c name = return [a, b, c]
 peristAllNamesTest :: Assertion
 peristAllNamesTest = do
     haskell <-
-        D.clearRepoStats testDb >>
+        runReaderT (D.clearRepoStatsT) testDb >>
         L.ipersistAllNames (mockApi "a" "b" "c") testDb "haskell" >>
         L.ipersistAllNames (mockApi "e" "f" "g") testDb "rust" >>
-        D.lookupLanguage testDb "haskell"
-    rust <- D.lookupLanguage testDb "rust"
+        runReaderT (D.lookupLanguageT "haskell") testDb
+    rust <- runReaderT(D.lookupLanguageT "rust") testDb
     ((join $ (view (at "a")) <$> haskell) @?= Just (stat "a" Nothing Nothing))
     ((join $ (view (at "e")) <$> haskell) @?= Nothing)
     ((join $ (view (at "e")) <$> rust) @?= Just (stat "e" Nothing Nothing))
